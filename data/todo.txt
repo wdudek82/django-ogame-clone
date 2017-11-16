@@ -1,0 +1,43 @@
+1. user account:
+    - authorization/authentication
+    - password reset
+    - two factor authentication (with Google Authenticator?)
+    - OAuth
+    - premium content
+
+2. Create all components:
+    - Player:
+        - autocreation of User for new Profile
+    - buildings
+    - resources (summary + management: % capacity)
+    - facilities
+    - research/discoveries/technologies
+    - shipyard
+    - defence:
+        - turrets
+        - shields
+    - fleet:
+        - combat sheeps
+        - civil sheeps
+
+    - galaxy?
+    - merchant (resource exchange)
+
+    - Universe
+        - Player is in a given Universe (Player model with FK to Uni as extension of User model)
+    - Planet
+        - random/unique name generator
+        - adding random planet's image
+        - calculating sector of the universe for the home planet
+        - calculating free surface in method-field (take all player's buildings from a given planet, sum levels, etc.)
+
+3. Additional:
+    - construction ques
+    - progress bars (e.g. for
+
+4. Logging events:
+    - moon destruction
+    - fleet movements
+    - probe missions
+    - building/factory changes
+    ...is it viable?

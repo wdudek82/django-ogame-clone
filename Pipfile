@@ -1,0 +1,12 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+
+[packages]
+
+django = "==1.11.7"
+pytz = "==2017.3"
+pillow = "*"
+ipython = "*"

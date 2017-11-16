@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>Hello, World!</h1>
+
+    <h3>First building</h3>
+    <img src="{{ building.building.image.url }}" alt="" class="src">
+    <ul>
+        <li>Building: {{ building.id }}. {{ building.building.name }}</li>
+        <li>Owner: {{ building.player.user }}</li>
+        <li>Level: {{ building.level }}</li>
+    </ul>
+
+    <button>Upgrade</button>
+    <button>Downgrade</button>
+</body>
+</html>

@@ -1,0 +1,8 @@
+1. [PROOF OF CONCEPT]
+   Create first building and implement most simple logic for:
+    - upgradable (vide concepts.txt -> upgrading)
+    - produce resource (vide concepts.txt -> production)
+
+
+
+

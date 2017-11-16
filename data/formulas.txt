@@ -1,0 +1,20 @@
+http://ogame.wikia.com/wiki/Formulas
+http://ogame.wikia.com/wiki/Buildings (time to build, cost to build)
+
+Key
+C = Capacity
+E = Energy
+T = Max Temperature
+L = Structure Level
+P = Production
+MML = Metal Mine Level
+NFL = Nanite Factory Level
+RFL = Robotic Factory Level
+TTB = Time To Build
+US = Universe Speed
+
+Metal mine
+cost = base_cost * 1.5**MML
+P = C * 30 * L * 1.1**L
+E = 10 * MML * 1.1**MML
+TTB = Metal + Crystal (cost) / 2500 * (1 + RFL) * 2**NFL * US

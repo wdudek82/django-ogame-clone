@@ -1,0 +1,20 @@
+[upgrading]
+* In the DB PlayerBuilding has "is_upgraded" field, and "upgrade_end" field
+* during every reload method fires up, that check if is_upgraded == True,
+  and upgrade_end <= current_time, and if so, then:
+    a. is_upgraded and upgrade_end are set to None,
+    b. building_level += 1
+    c. during next request player gets updated template (but using JS I can reflect
+       accurate state without reloading)
+
+[production]
+* it's possible, that I don't need to update DB state in realtime, becase
+  using delta would be enough, i.e. to calculate how much resource was produced
+  I would need:
+    a. last recorded state (record is updated during every state-changing operation),
+    b. time of record's last modification
+    c. formula allowing to calculate how much was produces between last modification,
+       and current datetime
+* any state-changing operation would cause updating record, updating "last_modified" field,
+* in case of unsuccessful attempt to modify state (e.g. when resource was insufficiet),
+  player gets proper warning, and record is not changed
