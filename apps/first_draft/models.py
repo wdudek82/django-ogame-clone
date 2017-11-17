@@ -3,16 +3,6 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
-class Resource(models.Model):
-    type = models.CharField(max_length=255, unique=True)
-
-    class Meta:
-        verbose_name_plural = 'Resources'
-
-    def __str__(self):
-        return self.type
-
-
 class Building(models.Model):
     name = models.CharField(max_length=255, unique=True)
     image = models.ImageField(null=True, blank=True)
@@ -42,7 +32,7 @@ class PlayerProfile(models.Model):
 
 
 class Moon(models.Model):
-    planet = models.OneToOneField('PlayerPlanet')
+    planet = models.OneToOneField('Planet')
     size = models.PositiveIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -54,13 +44,13 @@ class Moon(models.Model):
         return self.planet.player.user
 
 
-class PlayerPlanet(models.Model):
+class Planet(models.Model):
     POSITION = (
         ((num+1, num) for num in range(1, 9))
     )
 
     planet_name = models.CharField(max_length=30)
-    player = models.ForeignKey(PlayerProfile)
+    owner = models.ForeignKey(PlayerProfile)
     image = models.ImageField(null=True, blank=True)
     position = models.PositiveIntegerField(choices=POSITION, default=5)
     # TODO: Create function, that calculates sector for the home planet
@@ -87,8 +77,7 @@ class PlayerBuilding(models.Model):
         (1, 'moon surface')
     )
 
-    player = models.ForeignKey(PlayerProfile)
-    players_planet = models.ForeignKey('PlayerPlanet')
+    planet = models.ForeignKey(Planet)
     building_location = models.IntegerField(choices=LOCATIONS, default=0)
     building = models.ForeignKey(Building)
     level = models.PositiveIntegerField(default=0)
@@ -97,10 +86,10 @@ class PlayerBuilding(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['player', 'players_planet', 'building_location', 'building']
+        unique_together = ['planet', 'building_location', 'building']
 
     def __str__(self):
-        return '{}:{}:{}'.format(self.pk, self.player, self.building)
+        return '{}:{}:{}'.format(self.pk, self.building_location, self.building)
 
     def is_upgrading(self):
         """
@@ -116,16 +105,29 @@ class PlayerBuilding(models.Model):
         return bool(upgrade_ends_at)
 
 
-class PlayerResource(models.Model):
+class Resource(models.Model):
     PERCENT = (
-        ((num+1, num) for num in range(0, 101))
+        ((num, num) for num in range(0, 101))
     )
 
-    player = models.ForeignKey(PlayerProfile)
-    resource = models.ForeignKey(Resource)
+    RESOURCE_TYPE = (
+        (1, 'metal'),
+        (2, 'crystal'),
+        (3, 'deuter')
+    )
+
+    resource = models.IntegerField(choices=RESOURCE_TYPE)
+    location = models.ForeignKey(Planet)
     amount = models.PositiveIntegerField(default=0)
     capacity = models.IntegerField(default=10000)
     acceleration = models.PositiveIntegerField(choices=PERCENT, default=100)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['resource', 'location']
+
+    def __str__(self):
+        return ''.format(self.pk, self.resource, self.location)
 
     def capacity_exeeded(self):
         """
@@ -138,3 +140,11 @@ class PlayerResource(models.Model):
             self.acceleration = 0
             self.save()
         return overflow
+
+    def accumulated_metal(self):
+        # P = C * 30 * L * 1.1**L
+        now = timezone.now()
+        td = (now - self.modified).total_seconds()
+        metal_mine = PlayerBuilding.objects.get(player=1, building=1).level
+        produced = self.acceleration * 30 * metal_mine * 1.1**metal_mine
+        return int(self.amount + (produced / 3600) * td)
