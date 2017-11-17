@@ -17,7 +17,7 @@ class Building(models.Model):
 
 class Universe(models.Model):
     name = models.CharField(max_length=30)
-    speed = models.DecimalField(default=1, max_digits=4, decimal_places=2)
+    acceleration = models.DecimalField(default=1, max_digits=4, decimal_places=2)
 
     def __str__(self):
         return self.name
@@ -41,7 +41,7 @@ class Moon(models.Model):
         return '{}:{}'.format(self.pk, self.planet)
 
     def player(self):
-        return self.planet.player.user
+        return self.planet.owner.user
 
 
 class Planet(models.Model):
@@ -71,15 +71,18 @@ class Planet(models.Model):
         return self.moon if self.moon else '-'
 
 
+# TODO: On save, should send pre_save signal to resources to save current state
+# TODO: withoud that after changing level (L) of a mine/refinery "accumulated" will be
+# TODO: instantly calculated incorrectly
 class PlayerBuilding(models.Model):
     LOCATIONS = (
         (0, 'planetary surface'),
         (1, 'moon surface')
     )
 
-    planet = models.ForeignKey(Planet)
-    building_location = models.IntegerField(choices=LOCATIONS, default=0)
     building = models.ForeignKey(Building)
+    planet = models.ForeignKey(Planet)
+    building_location = models.IntegerField(choices=LOCATIONS, default=1)
     level = models.PositiveIntegerField(default=0)
     upgrade_ends_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -100,11 +103,12 @@ class PlayerBuilding(models.Model):
         now = timezone.now()
         upgrade_ends_at = self.upgrade_ends_at
         if upgrade_ends_at and upgrade_ends_at <= now:
-            upgrade_ends = None
+            upgrade_ends_at = None
             self.save()
         return bool(upgrade_ends_at)
 
 
+# TODO: on save() - save amount = accumulated
 class Resource(models.Model):
     PERCENT = (
         ((num, num) for num in range(0, 101))
@@ -116,18 +120,18 @@ class Resource(models.Model):
         (3, 'deuter')
     )
 
-    resource = models.IntegerField(choices=RESOURCE_TYPE)
+    resource_type = models.IntegerField(choices=RESOURCE_TYPE)
     location = models.ForeignKey(Planet)
     amount = models.PositiveIntegerField(default=0)
     capacity = models.IntegerField(default=10000)
-    acceleration = models.PositiveIntegerField(choices=PERCENT, default=100)
+    production_speed = models.PositiveIntegerField(choices=PERCENT, default=100)
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['resource', 'location']
+        unique_together = ['resource_type', 'location']
 
     def __str__(self):
-        return ''.format(self.pk, self.resource, self.location)
+        return ''.format(self.pk, self.resource_type, self.location)
 
     def capacity_exeeded(self):
         """
@@ -135,16 +139,30 @@ class Resource(models.Model):
         of a given resource and set 'overflow' to True
         :return: boolean
         """
-        overflow = self.amount > self.capacity
+        overflow = self.accumulated() > self.capacity
         if overflow:
-            self.acceleration = 0
+            self.production_speed = 0
             self.save()
         return overflow
 
-    def accumulated_metal(self):
-        # P = C * 30 * L * 1.1**L
+    def produced_per_hour(self):
+        """
+        production = acceleration * 30 * level * 1.1**level
+        """
+        # TODO: Need to adjust it for crystal, and - especially - deuter
+
+        universe_acceleration = float(self.location.owner.universe.acceleration)
+        resource = self.resource_type
+        generator_lvl = PlayerBuilding.objects.get(
+            planet=self.location, building=resource
+        ).level
+
+        base_production = universe_acceleration * 30 * generator_lvl * 1.1**generator_lvl
+        return base_production * (self.production_speed / 100)
+
+    def accumulated(self):
+        # Update resource's amount
         now = timezone.now()
         td = (now - self.modified).total_seconds()
-        metal_mine = PlayerBuilding.objects.get(player=1, building=1).level
-        produced = self.acceleration * 30 * metal_mine * 1.1**metal_mine
-        return int(self.amount + (produced / 3600) * td)
+
+        return self.amount + round(self.produced_per_hour() / 3600 * td)

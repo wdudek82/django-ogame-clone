@@ -17,16 +17,17 @@ class BuildingAdmin(admin.ModelAdmin):
 
 @admin.register(PlayerBuilding)
 class PlayerBuilding(admin.ModelAdmin):
-    list_display = ['pk', 'planet', 'building_location', 'building', 'level',
+    list_display = ['pk', 'building', 'planet', 'building_location', 'level',
                     'upgrade_ends_at', 'is_upgrading', 'created_at', 'updated_at']
-    list_display_links = ['planet']
+    list_display_links = ['building']
+    readonly_fields = ['upgrade_ends_at']
 
 
 @admin.register(Resource)
-class PlayerResourceAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'resource', 'location', 'modified', 'amount', 'capacity', 'capacity_exeeded',
-                    'acceleration', 'accumulated_metal']
-    list_display_links = ['resource']
+class ResourceAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'resource_type', 'location', 'modified', 'amount', 'accumulated', 'produced_per_hour',
+                    'capacity', 'capacity_exeeded', 'production_speed']
+    list_display_links = ['resource_type']
 
 
 @admin.register(Moon)
@@ -36,9 +37,9 @@ class MoonAdmin(admin.ModelAdmin):
 
 
 @admin.register(Planet)
-class PlayerPlanet(admin.ModelAdmin):
-    list_display = ['pk', 'planet_name', 'owner', 'get_image', 'position', 'sector', 'min_temperature', 'max_temperature',
-                    'surface', 'moon_id']
+class PlanetAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'planet_name', 'owner', 'get_image', 'position', 'sector',
+                    'min_temperature', 'max_temperature', 'surface', 'moon_id']
     list_display_links = ['planet_name']
 
     def get_image(self, instance):
@@ -49,7 +50,8 @@ class PlayerPlanet(admin.ModelAdmin):
 
 @admin.register(Universe)
 class UniverseAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name', 'speed']
+    list_display = ['pk', 'name', 'acceleration']
+    list_display_links = ['name']
 
 
 @admin.register(PlayerProfile)

@@ -5,13 +5,14 @@
     <title>Title</title>
 </head>
 <body>
-    <h1>Hello, World!</h1>
+    <h1>Ares 1</h1>
+    metal: {{ metal.accumulated }} ({{ metal.production_speed }}) | crystal: {{ crystal.accumulated }} | deuter: {{ deuter.accumulated }}
 
     <h3>First building</h3>
     <img src="{{ building.building.image.url }}" alt="" class="src">
     <ul>
-        <li>Building: {{ building.id }}. {{ building.building.name }}</li>
-        <li>Owner: {{ building.player.user }}</li>
+        <li>Building: {{ building.id }}. {{ building.name }}</li>
+        <li>Owner: {{ building}}</li>
         <li>Level: {{ building.level }}</li>
     </ul>
 
