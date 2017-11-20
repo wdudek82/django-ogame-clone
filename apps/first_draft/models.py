@@ -125,6 +125,7 @@ class Resource(models.Model):
 
     resource_type = models.IntegerField(choices=RESOURCE_TYPE)
     location = models.ForeignKey(Planet)
+    additional_amount = models.PositiveIntegerField(default=0)
     amount = models.PositiveIntegerField(default=0)
     capacity = models.IntegerField(default=10000)
     production_speed = models.PositiveIntegerField(choices=PERCENT, default=100)
@@ -136,13 +137,13 @@ class Resource(models.Model):
     def __str__(self):
         return ''.format(self.pk, self.resource_type, self.location)
 
-    def capacity_exceeded(self):
+    def reached_max_capacity(self):
         """
         If planet's capacity was exeeded, stop production
         of a given resource and set 'overflow' to True
         :return: boolean
         """
-        overflow = self.amount + self.accumulated() > self.capacity
+        overflow = self.amount + self.accumulated() >= self.capacity
         if overflow:
             self.amount += self.accumulated()
             self.production_speed = 0
@@ -181,19 +182,16 @@ class Resource(models.Model):
             self.production_speed = 0
             accumulated -= overflow
 
+        if accumulated < 0:
+            accumulated = 0
+
         return accumulated
-
-
-# @receiver(request_started)
-# def update_resources(sender, **kwargs):
-#     print(sender)
-#     print(kwargs)
 
 
 @receiver(pre_save, sender=Resource)
 def update_amount(sender, instance, *args, **kwargs):
-    instance.amount += instance.accumulated()
-    print(instance.amount)
-    print(instance.accumulated())
-    print('args:', args)
-    print('kwargs:', kwargs)
+    accumulated = instance.accumulated()
+    instance.amount += instance.additional_amount + accumulated
+    instance.additional_amount = 0
+
+    # TODO: Write tests to verify, that updating resource amount finally works!!
