@@ -6,12 +6,14 @@
 </head>
 <body>
     <h1>Ares 1</h1>
-    metal: {{ metal.accumulated }} ({{ metal.production_speed }}) | crystal: {{ crystal.accumulated }} | deuter: {{ deuter.accumulated }}
+    metal: {{ metal.amount|add:metal.accumulated }} ({{ metal.production_speed }}) | crystal: {{ crystal.amount }} | deuter: {{ deuter.amount }}
+    <p>{{ metal.capacity_exeeded }}</p>
+    {{ metal.accumulated }}
 
     <h3>First building</h3>
     <img src="{{ building.building.image.url }}" alt="" class="src">
     <ul>
-        <li>Building: {{ building.id }}. {{ building.name }}</li>
+        <li>Building: {{ building.id }}. {{ building.building.name }}</li>
         <li>Owner: {{ building}}</li>
         <li>Level: {{ building.level }}</li>
     </ul>

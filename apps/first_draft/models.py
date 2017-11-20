@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.signals import request_started
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 class Building(models.Model):
@@ -38,7 +41,7 @@ class Moon(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{}:{}'.format(self.pk, self.planet)
+        return '{}'.format(self.pk)
 
     def player(self):
         return self.planet.owner.user
@@ -133,16 +136,16 @@ class Resource(models.Model):
     def __str__(self):
         return ''.format(self.pk, self.resource_type, self.location)
 
-    def capacity_exeeded(self):
+    def capacity_exceeded(self):
         """
         If planet's capacity was exeeded, stop production
         of a given resource and set 'overflow' to True
         :return: boolean
         """
-        overflow = self.accumulated() > self.capacity
+        overflow = self.amount + self.accumulated() > self.capacity
         if overflow:
+            self.amount += self.accumulated()
             self.production_speed = 0
-            self.save()
         return overflow
 
     def produced_per_hour(self):
@@ -161,8 +164,36 @@ class Resource(models.Model):
         return base_production * (self.production_speed / 100)
 
     def accumulated(self):
-        # Update resource's amount
+        """
+        Update resource's amount
+        """
         now = timezone.now()
         td = (now - self.modified).total_seconds()
+        accumulated = round(self.produced_per_hour() / 3600 * td)
 
-        return self.amount + round(self.produced_per_hour() / 3600 * td)
+        # If capacity was exceeded, cut from the accumulated the
+        # overflow value - the goal it to stop accumulating
+        # but still to allow storing more, than total capacity would allow
+        # e.g. when transporters return with spoils
+        total = self.amount + accumulated
+        if total >= self.capacity:
+            overflow = total - self.capacity
+            self.production_speed = 0
+            accumulated -= overflow
+
+        return accumulated
+
+
+# @receiver(request_started)
+# def update_resources(sender, **kwargs):
+#     print(sender)
+#     print(kwargs)
+
+
+@receiver(pre_save, sender=Resource)
+def update_amount(sender, instance, *args, **kwargs):
+    instance.amount += instance.accumulated()
+    print(instance.amount)
+    print(instance.accumulated())
+    print('args:', args)
+    print('kwargs:', kwargs)

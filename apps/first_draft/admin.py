@@ -25,8 +25,9 @@ class PlayerBuilding(admin.ModelAdmin):
 
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'resource_type', 'location', 'modified', 'amount', 'accumulated', 'produced_per_hour',
-                    'capacity', 'capacity_exeeded', 'production_speed']
+    list_display = ['pk', 'resource_type', 'location', 'modified', 'amount', 'accumulated',
+                    'produced_per_hour',
+                    'capacity', 'capacity_exceeded', 'production_speed']
     list_display_links = ['resource_type']
 
 
