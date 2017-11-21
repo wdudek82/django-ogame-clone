@@ -1,0 +1,7 @@
+.capacity_exceeded {
+    color: red;
+}
+
+.capacity_not_exceeded {
+    color: blue;
+}

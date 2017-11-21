@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 class Building(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    image = models.ImageField(null=True, blank=True)
+    image = models.ImageField(upload_to='buildings', null=True, blank=True)
     base_cost_metal = models.PositiveIntegerField(default=0)
     base_cost_crystal = models.PositiveIntegerField(default=0)
     base_cost_deuter = models.PositiveIntegerField(default=0)
@@ -75,7 +75,7 @@ class Planet(models.Model):
 
 
 # TODO: On save, should send pre_save signal to resources to save current state
-# TODO: withoud that after changing level (L) of a mine/refinery "accumulated" will be
+# TODO: without that after changing level (L) of a mine/refinery "accumulated" will be
 # TODO: instantly calculated incorrectly
 class PlayerBuilding(models.Model):
     LOCATIONS = (
@@ -184,7 +184,7 @@ class Resource(models.Model):
 
         # If capacity was exceeded, cut from the accumulated the
         # overflow value - the goal it to stop accumulating
-        # but still to allow storing more, than total capacity would allow
+        # but still allow storing more than total capacity
         # e.g. when transporters return with spoils
         total = self.amount + accumulated
         if total >= self.capacity:

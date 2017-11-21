@@ -1,21 +1,54 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
     <title>Title</title>
 </head>
 <body>
-    <h1>Ares 1</h1>
-    metal: {{ metal.amount|add:metal.accumulated }} ({{ metal.production_speed }}) | crystal: {{ crystal.amount }} | deuter: {{ deuter.amount }}
-    <p>{{ metal.capacity_exeeded }}</p>
-    {{ metal.accumulated }}
+    <h1>Location: {{ location.planet.planet_name }} ({{ location.get_building_location_display }})</h1>
+
+    <p>
+        [ metal:
+        <span
+            {% if metal.reached_max_capacity %}
+            class="capacity_exceeded"
+            {% else %}
+            class="capacity_not_exceeded"
+            {% endif %}>
+            {{ metal.amount|add:metal.accumulated }}
+        </span>
+        ({{ metal.production_speed }}) ]
+        [ crystal:
+        <span
+            {% if crystal.reached_max_capacity %}
+            class="capacity_exceeded"
+            {% else %}
+            class="capacity_not_exceeded"
+            {% endif %}>
+            {{ crystal.amount|add:crystal.accumulated }}
+        </span>
+        ({{ crystal.production_speed }}) ]
+        [ deuter:
+        <span
+            {% if deuter.reached_max_capacity %}
+            class="capacity_exceeded"
+            {% else %}
+            class="capacity_not_exceeded"
+            {% endif %}>
+            {{ deuter.amount|add:deuter.accumulated }}
+        </span>
+        ({{ deuter.production_speed }}) ]
+    </p>
 
     <h3>First building</h3>
     <img src="{{ building.building.image.url }}" alt="" class="src">
     <ul>
         <li>Building: {{ building.id }}. {{ building.building.name }}</li>
-        <li>Owner: {{ building}}</li>
-        <li>Level: {{ building.level }}</li>
+        <li>Owner: {{ building.planet.owner }}</li>
+        <li>Mine lvl: {{ building.level }}</li>
     </ul>
 
     <button>Upgrade</button>

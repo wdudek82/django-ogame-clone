@@ -9,6 +9,7 @@ def index(request):
     deuter = Resource.objects.get(location=1, resource_type=3)
 
     context = {
+        'location': first_building,
         'building': first_building,
         'metal': metal,
         'crystal': crystal,
