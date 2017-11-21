@@ -155,14 +155,24 @@ class Resource(models.Model):
         """
         # TODO: Need to adjust it for crystal, and - especially - deuter
 
+        resource_modifier = (30, 20, 10)
+
         universe_acceleration = float(self.location.owner.universe.acceleration)
-        resource = self.resource_type
         generator_lvl = PlayerBuilding.objects.get(
-            planet=self.location, building=resource
+            planet=self.location, building=self.resource_type
         ).level
 
-        base_production = universe_acceleration * 30 * generator_lvl * 1.1**generator_lvl
-        return base_production * (self.production_speed / 100)
+        mean_temp = (self.location.min_temperature + self.location.max_temperature) / 2
+
+        base_production = (
+            universe_acceleration * resource_modifier[self.resource_type-1] * generator_lvl * 1.1**generator_lvl
+        )
+
+        # If resource is deuter - take mean planetary temperature into account
+        if self.resource_type == 3:
+            base_production *= -0.002 * mean_temp + 1.28
+
+        return round(base_production * (self.production_speed / 100), 2)
 
     def accumulated(self):
         """
