@@ -1,5 +1,5 @@
 [upgrading]
-* In the DB PlayerBuilding has "is_upgraded" field, and "upgrade_end" field
+* In the DB PlayerBuilding has "is_upgrading" field, and "upgrade_end" field
 * during every reload method fires up, that check if is_upgraded == True,
   and upgrade_end <= current_time, and if so, then:
     a. is_upgraded and upgrade_end are set to None,

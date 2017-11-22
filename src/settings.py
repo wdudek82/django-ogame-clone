@@ -38,11 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third party
+    'debug_toolbar',
+
     # Project apps
     'apps.first_draft',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -115,6 +119,12 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+
+# Debug Toolbar
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
 
 
 # Static files (CSS, JavaScript, Images)

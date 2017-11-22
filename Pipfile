@@ -10,3 +10,10 @@ django = "==1.11.7"
 pytz = "==2017.3"
 pillow = "*"
 ipython = "*"
+
+
+[dev-packages]
+
+django-debug-toolbar = "*"
+pytest = "*"
+pytest-cov = "*"

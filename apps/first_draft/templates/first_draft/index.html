@@ -48,7 +48,12 @@
     <ul>
         <li>Building: {{ building.id }}. {{ building.building.name }}</li>
         <li>Owner: {{ building.planet.owner }}</li>
-        <li>Mine lvl: {{ building.level }}</li>
+        <li>
+            Mine lvl: {{ building.current_level }}
+            {% if building.is_upgrading %}
+            <span style="font-weight: 700;">(Upgrading)</span>
+            {% endif %}
+        </li>
     </ul>
 
     <button>Upgrade</button>

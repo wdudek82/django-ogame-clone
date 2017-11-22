@@ -17,15 +17,15 @@ class BuildingAdmin(admin.ModelAdmin):
 
 @admin.register(PlayerBuilding)
 class PlayerBuilding(admin.ModelAdmin):
-    list_display = ['pk', 'building', 'planet', 'building_location', 'level',
+    list_display = ['pk', 'building', 'planet', 'building_location', 'current_level',
                     'upgrade_ends_at', 'is_upgrading', 'created_at', 'updated_at']
     list_display_links = ['building']
-    readonly_fields = ['upgrade_ends_at']
+    readonly_fields = ['current_level']
 
 
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'resource_type', 'location', 'modified', 'amount', 'accumulated',
+    list_display = ['pk', 'resource_type', 'planet', 'location', 'modified', 'amount', 'accumulated',
                     'produced_per_hour',
                     'capacity', 'reached_max_capacity', 'production_speed']
     list_display_links = ['resource_type']

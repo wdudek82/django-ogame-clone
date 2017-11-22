@@ -1,9 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.core.signals import request_started
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+
+
+LOCATIONS = (
+    (0, 'planetary surface'),
+    (1, 'moon surface')
+)
 
 
 class Building(models.Model):
@@ -74,19 +79,12 @@ class Planet(models.Model):
         return self.moon if self.moon else '-'
 
 
-# TODO: On save, should send pre_save signal to resources to save current state
-# TODO: without that after changing level (L) of a mine/refinery "accumulated" will be
-# TODO: instantly calculated incorrectly
 class PlayerBuilding(models.Model):
-    LOCATIONS = (
-        (0, 'planetary surface'),
-        (1, 'moon surface')
-    )
-
     building = models.ForeignKey(Building)
     planet = models.ForeignKey(Planet)
-    building_location = models.IntegerField(choices=LOCATIONS, default=1)
-    level = models.PositiveIntegerField(default=0)
+    building_location = models.IntegerField(choices=LOCATIONS, default=0)
+    current_level = models.PositiveIntegerField(default=0)
+    new_level = models.PositiveIntegerField(null=True, blank=True)  # to update resource amount before building level
     upgrade_ends_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -105,13 +103,13 @@ class PlayerBuilding(models.Model):
         """
         now = timezone.now()
         upgrade_ends_at = self.upgrade_ends_at
-        if upgrade_ends_at and upgrade_ends_at <= now:
-            upgrade_ends_at = None
+        if self.upgrade_ends_at and self.upgrade_ends_at <= now:
+            self.current_level += 1
+            self.upgrade_ends_at = None
             self.save()
         return bool(upgrade_ends_at)
 
 
-# TODO: on save() - save amount = accumulated
 class Resource(models.Model):
     PERCENT = (
         ((num, num) for num in range(0, 101))
@@ -120,11 +118,12 @@ class Resource(models.Model):
     RESOURCE_TYPE = (
         (1, 'metal'),
         (2, 'crystal'),
-        (3, 'deuter')
+        (3, 'deuterium')
     )
 
     resource_type = models.IntegerField(choices=RESOURCE_TYPE)
-    location = models.ForeignKey(Planet)
+    planet = models.ForeignKey(Planet)
+    location = models.IntegerField(choices=LOCATIONS, default=1)
     additional_amount = models.PositiveIntegerField(default=0)
     amount = models.PositiveIntegerField(default=0)
     capacity = models.IntegerField(default=10000)
@@ -132,16 +131,15 @@ class Resource(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['resource_type', 'location']
+        unique_together = ['resource_type', 'planet', 'location']
 
     def __str__(self):
         return ''.format(self.pk, self.resource_type, self.location)
 
     def reached_max_capacity(self):
         """
-        If planet's capacity was exeeded, stop production
-        of a given resource and set 'overflow' to True
-        :return: boolean
+        If planet's capacity was exceeded, stop production
+        of a given resource and set 'overflow' to True (after next request)
         """
         overflow = self.amount + self.accumulated() >= self.capacity
         if overflow:
@@ -151,26 +149,26 @@ class Resource(models.Model):
 
     def produced_per_hour(self):
         """
-        production = acceleration * 30 * level * 1.1**level
+        production = uni acceleration * 30 * building level * 1.1** building level
         """
-        # TODO: Need to adjust it for crystal, and - especially - deuter
-
         resource_modifier = (30, 20, 10)
-
-        universe_acceleration = float(self.location.owner.universe.acceleration)
+        resource = self.resource_type
+        min_temp = self.planet.min_temperature
+        max_temp = self.planet.max_temperature
+        mean_temp = (min_temp + max_temp) / 2
+        uni_acc = float(self.planet.owner.universe.acceleration)
         generator_lvl = PlayerBuilding.objects.get(
-            planet=self.location, building=self.resource_type
-        ).level
+            planet=self.planet, building=self.resource_type
+        ).current_level
 
-        mean_temp = (self.location.min_temperature + self.location.max_temperature) / 2
 
         base_production = (
-            universe_acceleration * resource_modifier[self.resource_type-1] * generator_lvl * 1.1**generator_lvl
+            uni_acc * resource_modifier[resource-1] * generator_lvl * 1.1**generator_lvl
         )
 
-        # If resource is deuter - take mean planetary temperature into account
+        # If resource is deuterium, take mean planetary temperature into account
         if self.resource_type == 3:
-            base_production *= -0.002 * mean_temp + 1.28
+            base_production *= (-0.002 * mean_temp + 1.28)
 
         return round(base_production * (self.production_speed / 100), 2)
 
@@ -182,10 +180,10 @@ class Resource(models.Model):
         td = (now - self.modified).total_seconds()
         accumulated = round(self.produced_per_hour() / 3600 * td)
 
-        # If capacity was exceeded, cut from the accumulated the
-        # overflow value - the goal it to stop accumulating
-        # but still allow storing more than total capacity
-        # e.g. when transporters return with spoils
+        # If capacity was exceeded, cut from the 'accumulated' the overflow value;
+        # the goal is to stop accumulating, but at the same time
+        # to allow storing more than total capacity, e.g.:
+        # when transporters return with their cargo
         total = self.amount + accumulated
         if total >= self.capacity:
             overflow = total - self.capacity
@@ -198,10 +196,32 @@ class Resource(models.Model):
         return accumulated
 
 
+# TODO: Write tests to verify, that updating resource amount finally works!!
 @receiver(pre_save, sender=Resource)
 def update_amount(sender, instance, *args, **kwargs):
     accumulated = instance.accumulated()
     instance.amount += instance.additional_amount + accumulated
     instance.additional_amount = 0
 
-    # TODO: Write tests to verify, that updating resource amount finally works!!
+
+@receiver(pre_save, sender=PlayerBuilding)
+def save_resource_state_on_building_update(sender, instance, *args, **kwargs):
+    building_id = instance.building.id
+    current_level = instance.current_level
+    new_level = instance.new_level
+
+    print(building_id)
+
+    # If building's level was changed, first save the resource it generated
+    # to prevent wrong recalculation of "accumulated" value,
+    # that uses "produced_per_hour" coefficient dependant on building's level
+    if current_level != new_level and new_level:
+        if building_id in [1, 2, 3]:
+            resource = Resource.objects.get(
+                resource_type=building_id,
+                planet=instance.planet,
+                location=instance.building_location,
+            )
+            resource.save()
+        instance.current_level = new_level
+        instance.new_level = None
