@@ -187,7 +187,6 @@ class Resource(models.Model):
         total = self.amount + accumulated
         if total >= self.capacity:
             overflow = total - self.capacity
-            self.production_speed = 0
             accumulated -= overflow
 
         if accumulated < 0:
@@ -209,8 +208,6 @@ def save_resource_state_on_building_update(sender, instance, *args, **kwargs):
     building_id = instance.building.id
     current_level = instance.current_level
     new_level = instance.new_level
-
-    print(building_id)
 
     # If building's level was changed, first save the resource it generated
     # to prevent wrong recalculation of "accumulated" value,
