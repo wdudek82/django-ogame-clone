@@ -18,3 +18,9 @@ cost = base_cost * 1.5**MML
 P = C * 30 * L * 1.1**L
 E = 10 * MML * 1.1**MML
 TTB = Metal + Crystal (cost) / 2500 * (1 + RFL) * 2**NFL * US
+
+
+e.g. upgrading Metal mine to lvl 17:
+metal = 225 * 1.5**16 = 147789
+crystal = 75 * 1.5**16 = 49263
+(147789.18 + 49263.06) / (2500 * (1 + 0) * 2**0 * 1)

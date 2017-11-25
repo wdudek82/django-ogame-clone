@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+import pytz
 
 
 LOCATIONS = (
@@ -85,7 +86,8 @@ class PlayerBuilding(models.Model):
     building_location = models.IntegerField(choices=LOCATIONS, default=0)
     current_level = models.PositiveIntegerField(default=0)
     new_level = models.PositiveIntegerField(null=True, blank=True)  # to update resource amount before building level
-    upgrade_ends_at = models.DateTimeField(null=True, blank=True)
+    upgrade_started_at = models.DateTimeField(null=True, blank=True)
+    # upgrade_ends_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -96,19 +98,36 @@ class PlayerBuilding(models.Model):
         return '{}:{}:{}'.format(self.pk, self.building_location, self.building)
 
     def is_upgrading(self):
-        """
-        Check if building is upgrading by checking if upgrade_end date was set,
-        and is a future date. In other case set update_date to null, and
-        return boolean
-        """
-        now = timezone.now()
-        upgrade_ends_at = self.upgrade_ends_at
-        if self.upgrade_ends_at and self.upgrade_ends_at <= now:
-            self.current_level += 1
-            self.upgrade_ends_at = None
-            self.save()
-        return bool(upgrade_ends_at)
+        if self.upgrade_started_at and self.upgrade_ends_at():
+            return self.upgrade_started_at <= timezone.datetime.now(tz=pytz.UTC) <= self.upgrade_ends_at()
 
+
+    def upgrade_time(self):
+        """
+        How long it take to upgrade building to the next level
+        """
+        uni_speed = float(self.planet.owner.universe.acceleration)
+        lvl = self.current_level
+        metal_cost = self.building.base_cost_metal * 1.5**lvl
+        crystal_cost = self.building.base_cost_crystal * 1.5**lvl
+        rf = 0  # robotic factory
+        nf = 0  # nanite factory
+
+        upgrade_time = (metal_cost * crystal_cost) / (2500 * (1 + rf) * 2**nf * uni_speed)
+        return upgrade_time
+
+    def upgrade_ends_at(self):
+        upgrade_time = self.upgrade_time()
+        upgrade_started = self.upgrade_started_at
+        if upgrade_started:
+            upgrade_ends_at = upgrade_started + timezone.timedelta(seconds=upgrade_time)
+            if upgrade_ends_at >= timezone.datetime.now(tz=pytz.UTC):
+                return upgrade_ends_at
+            else:
+                self.current_level += 1
+                self.upgrade_started_at = None
+                self.save()
+        return None
 
 class Resource(models.Model):
     PERCENT = (

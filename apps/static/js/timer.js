@@ -1,6 +1,6 @@
 // var this_js_script = $('script[src*=timer]');
 var selector = $('#timer');
-var total_milliseconds = parseFloat(selector.attr('data-datetime'));
+var total_milliseconds = parseFloat(selector.attr('data-datetime') * 1000);
 var datetime = new Date(total_milliseconds);
 
 if (datetime > Date.now()) {
@@ -22,7 +22,6 @@ if (datetime > Date.now()) {
         var hour = 60 * 60 * 1000;
         var rDays = Math.floor(delta / day) ? Math.floor(delta / day) + 'd ' : '';
         var rHours = Math.floor(delta % day / hour) ? Math.floor(delta % day / hour) + 'h ' : '';
-        // var rHours = (timeRemaining.getHours() < 10 ? '0' : '') + timeRemaining.getHours();
         var rMinutes = (timeRemaining.getMinutes() < 10 ? '0' : '') + timeRemaining.getMinutes();
         var rSeconds = (timeRemaining.getSeconds() < 10 ? '0' : '') + timeRemaining.getSeconds();
         var formatedRemainingTime = rDays + rHours + rMinutes + 'm ' + rSeconds + 's';
