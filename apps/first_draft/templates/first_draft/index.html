@@ -41,7 +41,7 @@
             {% endif %}>
             {{ deuterium.amount|add:deuterium.accumulated }}
         </span>
-        ({{ deuter.production_speed }}) ]
+        ({{ deuterium.production_speed }}) ]
     </p>
 
     <h3>First building</h3>
@@ -52,14 +52,22 @@
         <li>
             <p>
                 Mine lvl: {{ building.current_level }}
-                <span style="font-weight: 700;">(Upgrading)</span>
             </p>
 
-            <span id="timer" data-upgrade-ends-at="{{ upgrade_ends_at }}" data-upgraded-percent="{{ upgraded_percent }}"></span>
+            <span id="timer"
+                  data-upgrade-started-at="{{ upgrade_started_at }}"
+                  data-upgrade-ends-at="{{ upgrade_ends_at }}"
+                  data-upgraded-percent="{{ upgraded_percent }}">
+            </span>
 
             {% if building.is_upgrading %}
+            <p>
+                <span style="font-weight: 700;">(Upgrading) </span>
+                ({{ upgraded_percent }}%)
+            </p>
+
             <div class="progress" style="width: 200px; height: 15px;">
-              <div class="progress-bar"
+              <div id="dynamic-progress-bar" class="progress-bar"
                    role="progressbar"
                    style="width: 0%;"
                    aria-valuenow="0"
@@ -72,14 +80,15 @@
         </li>
     </ul>
 
+    {% if building.is_upgrading %}
+    <button>Cancel upgrade</button>
+    {% else %}
     <button>Upgrade</button>
     <button>Downgrade</button>
+    {% endif %}
 
     <!-- jQuery CDN -->
-    <script
-          src="https://code.jquery.com/jquery-3.2.1.min.js"
-          integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-          crossorigin="anonymous"></script>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
 
     <script src="{% static 'js/timer.js' %}"></script>
 </body>

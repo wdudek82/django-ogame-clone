@@ -14,11 +14,12 @@ def index(request):
     one_percent = first_building.upgrade_time() / 100
     if upgrade_ends_at:
         upgrade_ends_at = upgrade_ends_at.timestamp()
-        upgraded_percent = 100 - round((upgrade_ends_at - timezone.now().timestamp()) / one_percent)
+        upgraded_percent = 100 - round((upgrade_ends_at - timezone.now().timestamp()) / one_percent, 1)
 
 
     context = {
         'building': first_building,
+        'upgrade_started_at': first_building.upgrade_started_at.timestamp(),
         'upgrade_ends_at': upgrade_ends_at,
         'upgraded_percent': upgraded_percent,
         'metal': metal,

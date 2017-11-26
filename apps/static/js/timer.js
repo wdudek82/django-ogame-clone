@@ -1,14 +1,26 @@
-// var this_js_script = $('script[src*=timer]');
 var selector = $('#timer');
-var total_milliseconds = parseFloat(selector.attr('data-upgrade-ends-at') * 1000);
-var upgrade_ends_at = new Date(total_milliseconds);
-var upgraded_percent = parseFloat(selector.attr('data-upgraded-duration'));
-var upgraded_percent_dt = new Date(upgraded_percent);
+var upgrade_started_at = parseFloat(selector.attr('data-upgrade-started-at') * 1000);
+var upgrade_ends_at = parseFloat(selector.attr('data-upgrade-ends-at') * 1000);
+var upgrade_ends_at_dt = new Date(upgrade_ends_at);
 
 
-if (upgrade_ends_at > Date.now()) {
+
+function calculate_upgrade_percent() {
+    var progress_bar = $('#dynamic-progress-bar');
+
+    var one_percent = (upgrade_ends_at - upgrade_started_at) / 100;
+    var upgraded_percent = (100 - (upgrade_ends_at_dt - Date.now()) / one_percent).toFixed(1);
+
+    progress_bar.css('width', upgraded_percent + '%');
+    progress_bar.text(upgraded_percent + '%');
+}
+
+
+if (upgrade_ends_at_dt > Date.now()) {
     setInterval(function showTimer() {
-        var delta = Math.floor((upgrade_ends_at - Date.now()));
+        calculate_upgrade_percent();
+
+        var delta = Math.floor((upgrade_ends_at_dt - Date.now()));
         console.log(delta);
         console.log(upgrade_ends_at);
         console.log(upgrade_ends_at > Date.now());
@@ -29,10 +41,8 @@ if (upgrade_ends_at > Date.now()) {
         var rSeconds = (timeRemaining.getSeconds() < 10 ? '0' : '') + timeRemaining.getSeconds();
         var formatedRemainingTime = rDays + rHours + rMinutes + 'm ' + rSeconds + 's';
         console.log(formatedRemainingTime);
-        console.log(upgraded_percent_dt);
         console.log('\n\n');
 
         timer.text(formatedRemainingTime);
-
     }, 1000);
 }
