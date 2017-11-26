@@ -1,14 +1,17 @@
 // var this_js_script = $('script[src*=timer]');
 var selector = $('#timer');
-var total_milliseconds = parseFloat(selector.attr('data-datetime') * 1000);
-var datetime = new Date(total_milliseconds);
+var total_milliseconds = parseFloat(selector.attr('data-upgrade-ends-at') * 1000);
+var upgrade_ends_at = new Date(total_milliseconds);
+var upgraded_percent = parseFloat(selector.attr('data-upgraded-duration'));
+var upgraded_percent_dt = new Date(upgraded_percent);
 
-if (datetime > Date.now()) {
+
+if (upgrade_ends_at > Date.now()) {
     setInterval(function showTimer() {
-        var delta = Math.floor((datetime - Date.now()));
+        var delta = Math.floor((upgrade_ends_at - Date.now()));
         console.log(delta);
-        console.log(datetime);
-        console.log(datetime > Date.now());
+        console.log(upgrade_ends_at);
+        console.log(upgrade_ends_at > Date.now());
 
         var timer = $('#timer');
         if (delta <= 600) {
@@ -26,6 +29,7 @@ if (datetime > Date.now()) {
         var rSeconds = (timeRemaining.getSeconds() < 10 ? '0' : '') + timeRemaining.getSeconds();
         var formatedRemainingTime = rDays + rHours + rMinutes + 'm ' + rSeconds + 's';
         console.log(formatedRemainingTime);
+        console.log(upgraded_percent_dt);
         console.log('\n\n');
 
         timer.text(formatedRemainingTime);

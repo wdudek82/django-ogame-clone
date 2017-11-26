@@ -55,17 +55,20 @@
                 <span style="font-weight: 700;">(Upgrading)</span>
             </p>
 
-            <span id="timer" data-datetime="{{ upgrade_ends_at }}"></span>
+            <span id="timer" data-upgrade-ends-at="{{ upgrade_ends_at }}" data-upgraded-percent="{{ upgraded_percent }}"></span>
+
+            {% if building.is_upgrading %}
             <div class="progress" style="width: 200px; height: 15px;">
               <div class="progress-bar"
                    role="progressbar"
-                   style="width: {{ upgraded_percent }}%;"
+                   style="width: 0%;"
                    aria-valuenow="0"
                    aria-valuemin="0"
                    aria-valuemax="100">
-                  {{ upgraded_percent }}%
+                  0%
               </div>
             </div>
+            {% endif %}
         </li>
     </ul>
 

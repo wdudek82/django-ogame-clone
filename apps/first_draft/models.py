@@ -101,7 +101,6 @@ class PlayerBuilding(models.Model):
         if self.upgrade_started_at and self.upgrade_ends_at():
             return self.upgrade_started_at <= timezone.datetime.now(tz=pytz.UTC) <= self.upgrade_ends_at()
 
-
     def upgrade_time(self):
         """
         How long it take to upgrade building to the next level
