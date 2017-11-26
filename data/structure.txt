@@ -1,0 +1,21 @@
+economy:
+  - resource
+  - energy
+
+locations:
+  - Planet
+  - Moon
+
+blueprints:
+  - BuildingBlueprint
+  - ShipBlueprint
+  - DefenceBlueprint
+  - ResearchPlan
+
+fleets:
+  - Ship
+  - Fleet
+
+buildings:
+    - building
+    - defence

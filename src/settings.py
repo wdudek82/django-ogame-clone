@@ -42,7 +42,12 @@ INSTALLED_APPS = [
     'debug_toolbar',
 
     # Project apps
+    'apps.economy',
     'apps.first_draft',
+    'apps.locations',
+    'apps.profiles',
+    'apps.structures',
+    'apps.universes',
 ]
 
 MIDDLEWARE = [

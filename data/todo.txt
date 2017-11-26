@@ -4,6 +4,7 @@
     - two factor authentication (with Google Authenticator?)
     - OAuth
     - premium content
+    - page skins
 
 2. Create all components:
     - Player:
@@ -33,11 +34,11 @@
 
 3. Additional:
     - construction ques
-    - progress bars (e.g. for
+    - (dynamic) progress bars
 
 4. Logging events:
     - moon destruction
     - fleet movements
     - probe missions
     - building/factory changes
-    ...is it viable?
+    ...is it viable? Should I use separate DB (like MongoDB) for that?

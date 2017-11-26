@@ -9,7 +9,12 @@
     <title>Title</title>
 </head>
 <body>
-    <h1>Location: {{ building.planet.planet_name }} ({{ building.get_building_location_display }})</h1>
+    <h1>
+        Location: {{ building.planet.planet_name }} ({{ building.get_building_location_display }})
+    </h1>
+    <p>
+        Planet's surface: {{ building.planet.surface }}/{{ building.planet.free_surface }}
+    </p>
 
     <p>
         [ metal:
@@ -63,7 +68,7 @@
             {% if building.is_upgrading %}
             <p>
                 <span style="font-weight: 700;">(Upgrading) </span>
-                ({{ upgraded_percent }}%)
+                <span id="foo"></span>
             </p>
 
             <div class="progress" style="width: 200px; height: 15px;">

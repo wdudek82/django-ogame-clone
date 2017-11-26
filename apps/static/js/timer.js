@@ -13,6 +13,10 @@ function calculate_upgrade_percent() {
 
     progress_bar.css('width', upgraded_percent + '%');
     progress_bar.text(upgraded_percent + '%');
+
+    // To delete
+    $('#foo').text(upgraded_percent + '%');
+
 }
 
 
